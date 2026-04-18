@@ -1,0 +1,24 @@
+.lcc.json
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# OS / editor / Claude Code session
+.DS_Store
+.claude/
+
+# Unrelated artifacts living in repo root (separate analysis work)
+llm_*.pdf
+llm_*.png
+plot_llm*.py
+
+# SwiftPM / Xcode
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
