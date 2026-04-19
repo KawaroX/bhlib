@@ -1379,7 +1379,10 @@ def _cmd_seats(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="lcc")
+    parser = argparse.ArgumentParser(
+        prog="lcc",
+        epilog="全局选项：--version, -V 显示版本信息；--proxy 使用代理；--insecure 跳过 SSL 验证。"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     # === login ===
@@ -1648,6 +1651,17 @@ def _prefs_set(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     raw_argv = list(argv) if argv is not None else sys.argv[1:]
+
+    # Handle --version before any other processing
+    if "--version" in raw_argv or "-V" in raw_argv:
+        from importlib.metadata import version
+        try:
+            print(f"lcc {version('lcc')}")
+        except Exception:
+            # fallback to the version defined in the package
+            from lcc import __version__
+            print(f"lcc {__version__}")
+        return 0
 
     # Global flags that apply to any subcommand; we strip them before argparse.
     use_proxy = "--proxy" in raw_argv
