@@ -2,7 +2,7 @@
 """
 番茄钟守护进程 - 后台运行，计时结束后闪烁灯光并恢复原始亮度。
 
-此模块作为内部命令由 `lcc pomo start` 启动，不应直接调用。
+此模块作为内部命令由 `bhlib pomo start` 启动，不应直接调用。
 """
 
 from __future__ import annotations

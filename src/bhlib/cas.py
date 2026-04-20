@@ -127,7 +127,7 @@ def cas_login(
     )
 
     if use_proxy is None:
-        v = (os.environ.get("LCC_NO_PROXY") or "").strip().lower()
+        v = (os.environ.get("BHLIB_NO_PROXY") or "").strip().lower()
         use_proxy = v not in ("1", "true", "yes", "on")
 
     # If TLS is being broken by a proxy/middlebox, retry once with proxy disabled.
@@ -183,7 +183,7 @@ def cas_login(
     except urllib.error.URLError as e:
         msg = f"获取 SSO 登录页失败: {e}"
         if "EOF occurred in violation of protocol" in str(e):
-            msg += "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 LCC_NO_PROXY=1）"
+            msg += "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 BHLIB_NO_PROXY=1）"
         raise CasLoginError(msg) from e
 
     execution = _extract_execution(html)
@@ -221,7 +221,7 @@ def cas_login(
     except urllib.error.URLError as e:
         msg = f"SSO 登录请求失败: {e}"
         if "EOF occurred in violation of protocol" in str(e):
-            msg += "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 LCC_NO_PROXY=1）"
+            msg += "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 BHLIB_NO_PROXY=1）"
         raise CasLoginError(msg) from e
 
     cas = _extract_cas_from_urls([final_url, *redirect.locations])
@@ -253,7 +253,7 @@ def cas_login(
     except urllib.error.URLError as e:
         msg = f"换取 token 网络错误: {e}"
         if "EOF occurred in violation of protocol" in str(e):
-            msg += "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 LCC_NO_PROXY=1）"
+            msg += "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 BHLIB_NO_PROXY=1）"
         raise CasLoginError(msg) from e
 
     try:

@@ -1,4 +1,4 @@
-.lcc.json
+.bhlib.json
 .env
 __pycache__/
 *.py[cod]

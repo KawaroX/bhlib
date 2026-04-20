@@ -74,7 +74,7 @@ def post_json(
     )
 
     if use_proxy is None:
-        v = (os.environ.get("LCC_NO_PROXY") or "").strip().lower()
+        v = (os.environ.get("BHLIB_NO_PROXY") or "").strip().lower()
         use_proxy = v not in ("1", "true", "yes", "on")
 
     ctx = ssl.create_default_context() if verify_ssl else ssl._create_unverified_context()  # noqa: SLF001
@@ -105,5 +105,5 @@ def post_json(
                 pass
         hint = ""
         if _is_tls_eof_error(e):
-            hint = "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 LCC_NO_PROXY=1 强制不走代理）"
+            hint = "（提示：这通常是代理/中间人导致 TLS 被截断；可设置 BHLIB_NO_PROXY=1 强制不走代理）"
         raise HttpError(f"网络错误: {e}{hint}") from e

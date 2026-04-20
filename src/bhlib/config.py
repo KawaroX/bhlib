@@ -9,7 +9,7 @@ from typing import Any
 from .env import load_env
 
 DEFAULT_BASE_URL = "https://booking.lib.buaa.edu.cn"
-CONFIG_FILENAME = ".lcc.json"
+CONFIG_FILENAME = ".bhlib.json"
 
 
 class ConfigError(RuntimeError):
@@ -73,26 +73,26 @@ def load_auth() -> AuthConfig:
     file_data = _load_file(_config_path())
     env_file = load_env()
 
-    token = (os.environ.get("LCC_TOKEN") or env_file.get("LCC_TOKEN") or file_data.get("token") or "").strip()
-    cookie = (os.environ.get("LCC_COOKIE") or env_file.get("LCC_COOKIE") or file_data.get("cookie") or "").strip()
-    base_url = (os.environ.get("LCC_BASE_URL") or env_file.get("LCC_BASE_URL") or file_data.get("base_url") or DEFAULT_BASE_URL).strip()
-    env_insecure = (os.environ.get("LCC_INSECURE") or env_file.get("LCC_INSECURE") or "").strip()
+    token = (os.environ.get("BHLIB_TOKEN") or env_file.get("BHLIB_TOKEN") or file_data.get("token") or "").strip()
+    cookie = (os.environ.get("BHLIB_COOKIE") or env_file.get("BHLIB_COOKIE") or file_data.get("cookie") or "").strip()
+    base_url = (os.environ.get("BHLIB_BASE_URL") or env_file.get("BHLIB_BASE_URL") or file_data.get("base_url") or DEFAULT_BASE_URL).strip()
+    env_insecure = (os.environ.get("BHLIB_INSECURE") or env_file.get("BHLIB_INSECURE") or "").strip()
     if env_insecure:
         verify_ssl = False
     else:
         verify_ssl = bool(file_data.get("verify_ssl", True))
 
     default_area_id = (
-        os.environ.get("LCC_DEFAULT_AREA_ID")
-        or env_file.get("LCC_DEFAULT_AREA_ID")
+        os.environ.get("BHLIB_DEFAULT_AREA_ID")
+        or env_file.get("BHLIB_DEFAULT_AREA_ID")
         or file_data.get("default_area_id")
         or ""
     ).strip() or None
 
     if not token:
-        raise ConfigError("缺少 token：请先运行 `lcc auth login` / `lcc auth set`，或在 .env 里放账号让 CLI 自动登录")
+        raise ConfigError("缺少 token：请先运行 `bhlib login` / `bhlib auth set`，或在 .env 里放账号让 CLI 自动登录")
     if not cookie:
-        raise ConfigError("缺少 cookie：请先运行 `lcc auth login` / `lcc auth set`")
+        raise ConfigError("缺少 cookie：请先运行 `bhlib login` / `bhlib auth set`")
 
     return AuthConfig(
         token=token,
@@ -109,14 +109,14 @@ def load_auth_loose() -> AuthConfig:
     """
     file_data = _load_file(_config_path())
     env_file = load_env()
-    token = (os.environ.get("LCC_TOKEN") or env_file.get("LCC_TOKEN") or file_data.get("token") or "").strip()
-    cookie = (os.environ.get("LCC_COOKIE") or env_file.get("LCC_COOKIE") or file_data.get("cookie") or "").strip()
-    base_url = (os.environ.get("LCC_BASE_URL") or env_file.get("LCC_BASE_URL") or file_data.get("base_url") or DEFAULT_BASE_URL).strip()
-    env_insecure = (os.environ.get("LCC_INSECURE") or env_file.get("LCC_INSECURE") or "").strip()
+    token = (os.environ.get("BHLIB_TOKEN") or env_file.get("BHLIB_TOKEN") or file_data.get("token") or "").strip()
+    cookie = (os.environ.get("BHLIB_COOKIE") or env_file.get("BHLIB_COOKIE") or file_data.get("cookie") or "").strip()
+    base_url = (os.environ.get("BHLIB_BASE_URL") or env_file.get("BHLIB_BASE_URL") or file_data.get("base_url") or DEFAULT_BASE_URL).strip()
+    env_insecure = (os.environ.get("BHLIB_INSECURE") or env_file.get("BHLIB_INSECURE") or "").strip()
     verify_ssl = False if env_insecure else bool(file_data.get("verify_ssl", True))
     default_area_id = (
-        os.environ.get("LCC_DEFAULT_AREA_ID")
-        or env_file.get("LCC_DEFAULT_AREA_ID")
+        os.environ.get("BHLIB_DEFAULT_AREA_ID")
+        or env_file.get("BHLIB_DEFAULT_AREA_ID")
         or file_data.get("default_area_id")
         or ""
     ).strip() or None
@@ -131,14 +131,14 @@ def load_auth_loose() -> AuthConfig:
 
 def update_defaults(*, default_area_id: str | None = None) -> None:
     """
-    Update defaults in .lcc.json without touching token/cookie.
+    Update defaults in .bhlib.json without touching token/cookie.
     """
     path = _config_path()
     data = _load_file(path)
     if default_area_id is not None:
         data["default_area_id"] = str(default_area_id).strip() or None
     if not data:
-        raise ConfigError("未找到 .lcc.json：请先运行一次 `lcc auth set` 或 `lcc auth login`")
+        raise ConfigError("未找到 .bhlib.json：请先运行一次 `bhlib auth set` 或 `bhlib login`")
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
@@ -162,7 +162,7 @@ def get_cached_area_tree(*, max_age_sec: int = 86400) -> dict | None:
 
 def cache_area_tree(tree: dict) -> None:
     """
-    Persist area tree cache into .lcc.json.
+    Persist area tree cache into .bhlib.json.
     """
     import time as _t
     path = _config_path()
@@ -186,7 +186,7 @@ def get_cached_segment(*, area_id: str, start_time: str, end_time: str) -> str |
 
 def cache_segment(*, area_id: str, start_time: str, end_time: str, segment: str) -> None:
     """
-    Persist segment cache into .lcc.json.
+    Persist segment cache into .bhlib.json.
     """
     segment = str(segment).strip()
     if not segment:
@@ -204,7 +204,7 @@ def cache_segment(*, area_id: str, start_time: str, end_time: str, segment: str)
 
 def save_pomo_state(state: dict) -> None:
     """
-    Save pomodoro daemon state to .lcc.json.
+    Save pomodoro daemon state to .bhlib.json.
     """
     path = _config_path()
     data = _load_file(path)
@@ -214,7 +214,7 @@ def save_pomo_state(state: dict) -> None:
 
 def load_pomo_state() -> dict | None:
     """
-    Load pomodoro daemon state from .lcc.json.
+    Load pomodoro daemon state from .bhlib.json.
     Returns None if no state exists.
     """
     data = _load_file(_config_path())
@@ -226,7 +226,7 @@ def load_pomo_state() -> dict | None:
 
 def clear_pomo_state() -> None:
     """
-    Remove pomodoro daemon state from .lcc.json.
+    Remove pomodoro daemon state from .bhlib.json.
     """
     path = _config_path()
     data = _load_file(path)

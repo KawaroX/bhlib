@@ -32,10 +32,10 @@ def _effective_verify_ssl(auth, args: argparse.Namespace) -> bool:
     return bool(getattr(auth, "verify_ssl", True))
 
 def _effective_use_proxy(args: argparse.Namespace) -> bool:
-    # Default: no proxy (campus network). Opt-in via --proxy or LCC_PROXY=1.
+    # Default: no proxy (campus network). Opt-in via --proxy or BHLIB_PROXY=1.
     if getattr(args, "proxy", False):
         return True
-    v = (os.environ.get("LCC_PROXY") or "").strip().lower()
+    v = (os.environ.get("BHLIB_PROXY") or "").strip().lower()
     if v in ("1", "true", "yes", "on"):
         return True
     return False
@@ -465,7 +465,7 @@ def _cmd_auth_set(args: argparse.Namespace) -> int:
         verify_ssl=(not args.insecure),
         default_area_id=default_area_id,
     )
-    print("OK: 已写入 .lcc.json（当前目录）")
+    print("OK: 已写入 .bhlib.json（当前目录）")
     return 0
 
 
@@ -492,20 +492,20 @@ def _cmd_auth_show(args: argparse.Namespace) -> int:
 
 def _cmd_auth_clear(args: argparse.Namespace) -> int:
     clear_auth()
-    print("OK: 已删除 .lcc.json")
+    print("OK: 已删除 .bhlib.json")
     return 0
 
 
 def _cmd_auth_login(args: argparse.Namespace) -> int:
     env = load_env()
-    username = args.username or (env.get("LCC_USERNAME") or "").strip()
+    username = args.username or (env.get("BHLIB_USERNAME") or "").strip()
     if not username:
-        raise ConfigError("缺少 username：请传 --username 或在 .env 里设置 LCC_USERNAME")
+        raise ConfigError("缺少 username：请传 --username 或在 .env 里设置 BHLIB_USERNAME")
 
-    password = args.password or (env.get("LCC_PASSWORD") or "")
+    password = args.password or (env.get("BHLIB_PASSWORD") or "")
     if not password:
         if args.no_prompt:
-            raise ConfigError("缺少密码：请传 --password 或在 .env 里设置 LCC_PASSWORD")
+            raise ConfigError("缺少密码：请传 --password 或在 .env 里设置 BHLIB_PASSWORD")
         password = getpass("Password: ")
     try:
         result = cas_login(
@@ -530,7 +530,7 @@ def _cmd_auth_login(args: argparse.Namespace) -> int:
         verify_ssl=(not args.insecure),
         default_area_id=default_area_id,
     )
-    print("OK: 登录成功，已写入 .lcc.json（token + booking 域 cookie）")
+    print("OK: 登录成功，已写入 .bhlib.json（token + booking 域 cookie）")
     return 0
 
 
@@ -881,7 +881,7 @@ def _cmd_space_book(args: argparse.Namespace) -> int:
 
     area_id = _resolve_area_id_maybe(args.area_id, args, auth=auth) or auth.default_area_id
     if not area_id:
-        raise ConfigError("缺少 area_id：请传 --area-id 或设置默认 LCC_DEFAULT_AREA_ID")
+        raise ConfigError("缺少 area_id：请传 --area-id 或设置默认 BHLIB_DEFAULT_AREA_ID")
 
     if start_time >= end_time:
         raise ConfigError(f"时间区间无效：start_time={start_time} end_time={end_time}")
@@ -954,7 +954,7 @@ def _cmd_space_book(args: argparse.Namespace) -> int:
         except Exception:  # noqa: BLE001
             pass
     if not segment:
-        segment = (env.get("LCC_DEFAULT_SEGMENT") or "").strip() or None
+        segment = (env.get("BHLIB_DEFAULT_SEGMENT") or "").strip() or None
     if not segment:
         segment = get_cached_segment(area_id=str(area_id), start_time=start_time, end_time=end_time)
     seats = _extract_seats_from_seat_resp(seat_resp)
@@ -1086,7 +1086,7 @@ def _cmd_seat_list(args: argparse.Namespace) -> int:
         item = _pick_my_active_item(sub, prefer_area_id=args.prefer_area_id)
         area_id = str(item.get("area_id") or "").strip() or None
     if not area_id:
-        raise ConfigError("缺少 area_id：请传 --area-id 或在 .env/.lcc.json 设置默认 LCC_DEFAULT_AREA_ID（或用 --area-from-subscribe）")
+        raise ConfigError("缺少 area_id：请传 --area-id 或在 .env/.bhlib.json 设置默认 BHLIB_DEFAULT_AREA_ID（或用 --area-from-subscribe）")
 
     if (args.start_time is None) and (args.end_time is None) and start_time >= end_time:
         raise ConfigError(f"默认时间区间无效：start_time={start_time} end_time={end_time}（请手动指定 --start-time/--end-time 或 --day）")
@@ -1270,7 +1270,7 @@ def _cmd_pomo_start_daemon(args: argparse.Namespace) -> int:
     print(f"   结束时间: {state['end_at']}")
     print(f"   原始亮度: {current_brightness}")
     print(f"   闪烁: {low}↔{high} x{cycles}")
-    print("使用 'lcc pomo status' 查看状态，'lcc pomo stop' 提前停止")
+    print("使用 'bhlib pomo status' 查看状态，'bhlib pomo stop' 提前停止")
     return 0
 
 
@@ -1304,7 +1304,7 @@ def _cmd_pomo_status(args: argparse.Namespace) -> int:
             print("   🟡 计时结束，可能正在闪烁或恢复")
     else:
         print("   🔴 进程未运行（可能已结束或崩溃）")
-        print("   使用 'lcc pomo stop' 清理状态")
+        print("   使用 'bhlib pomo stop' 清理状态")
 
     return 0
 
@@ -1380,14 +1380,14 @@ def _cmd_seats(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="lcc",
+        prog="bhlib",
         epilog="全局选项：--version, -V 显示版本信息；--proxy 使用代理；--insecure 跳过 SSL 验证。"
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
     # === login ===
     p_login = sub.add_parser("login", help="北航 SSO 登录（从 .env 读账号密码）")
-    p_login.add_argument("--username", help="学号/工号；不传则读 .env 的 LCC_USERNAME")
+    p_login.add_argument("--username", help="学号/工号；不传则读 .env 的 BHLIB_USERNAME")
     p_login.add_argument("--password", help="SSO 密码（不传则交互式输入）")
     p_login.add_argument("--seed-cookie", help=argparse.SUPPRESS)
     p_login.add_argument("--base-url", default=None, help=argparse.SUPPRESS)
@@ -1545,7 +1545,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_pomo_daemon.set_defaults(func=_cmd_pomo_daemon, insecure=False)
 
     # === config ===
-    p_config = sub.add_parser("config", help="写入默认值到 .lcc.json（如默认区域）")
+    p_config = sub.add_parser("config", help="写入默认值到 .bhlib.json（如默认区域）")
     p_config.add_argument("--default-area", dest="default_area_id", help="常用区域（id 或名字）")
     p_config.add_argument("--timeout", type=float, default=15.0, help=argparse.SUPPRESS)
     p_config.set_defaults(func=_prefs_set, insecure=False)
@@ -1642,7 +1642,7 @@ def _prefs_set(args: argparse.Namespace) -> int:
         raise ConfigError("请至少传一个字段（例如 --default-area-id 8）")
     resolved = _resolve_area_id_maybe(args.default_area_id, args)
     update_defaults(default_area_id=resolved)
-    msg = f"OK: 已更新 .lcc.json (default_area_id={resolved})"
+    msg = f"OK: 已更新 .bhlib.json (default_area_id={resolved})"
     if resolved != args.default_area_id:
         msg += f"  ← 解析自 '{args.default_area_id}'"
     print(msg)
@@ -1656,11 +1656,11 @@ def main(argv: list[str] | None = None) -> int:
     if "--version" in raw_argv or "-V" in raw_argv:
         from importlib.metadata import version
         try:
-            print(f"lcc {version('lcc')}")
+            print(f"bhlib {version('bhlib')}")
         except Exception:
             # fallback to the version defined in the package
-            from lcc import __version__
-            print(f"lcc {__version__}")
+            from bhlib import __version__
+            print(f"bhlib {__version__}")
         return 0
 
     # Global flags that apply to any subcommand; we strip them before argparse.
@@ -1668,9 +1668,9 @@ def main(argv: list[str] | None = None) -> int:
     insecure = "--insecure" in raw_argv
     raw_argv = [a for a in raw_argv if a not in ("--proxy", "--insecure")]
     if use_proxy:
-        os.environ["LCC_PROXY"] = "1"
+        os.environ["BHLIB_PROXY"] = "1"
     if insecure:
-        os.environ["LCC_INSECURE"] = "1"
+        os.environ["BHLIB_INSECURE"] = "1"
 
     parser = build_parser()
     args = parser.parse_args(raw_argv)

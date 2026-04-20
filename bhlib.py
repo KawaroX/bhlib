@@ -13,7 +13,7 @@ def _bootstrap_src() -> None:
 
 def main() -> int:
     _bootstrap_src()
-    from lcc.cli import main as cli_main  # noqa: PLC0415
+    from bhlib.cli import main as cli_main  # noqa: PLC0415
 
     return int(cli_main())
 

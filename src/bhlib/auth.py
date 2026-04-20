@@ -38,14 +38,14 @@ def _parse_hhmm(s: str) -> tuple[int, int]:
     if not s:
         return (18, 5)
     if ":" not in s:
-        raise ConfigError("LCC_TOKEN_REFRESH_AT 必须形如 HH:MM")
+        raise ConfigError("BHLIB_TOKEN_REFRESH_AT 必须形如 HH:MM")
     hh, mm = s.split(":", 1)
     if not (hh.isdigit() and mm.isdigit()):
-        raise ConfigError("LCC_TOKEN_REFRESH_AT 必须形如 HH:MM")
+        raise ConfigError("BHLIB_TOKEN_REFRESH_AT 必须形如 HH:MM")
     h = int(hh)
     m = int(mm)
     if not (0 <= h <= 23 and 0 <= m <= 59):
-        raise ConfigError("LCC_TOKEN_REFRESH_AT 超出范围")
+        raise ConfigError("BHLIB_TOKEN_REFRESH_AT 超出范围")
     return (h, m)
 
 
@@ -53,7 +53,7 @@ def should_refresh_token(token: str) -> bool:
     """
     Refresh policy:
     - If exp is near/expired => refresh.
-    - If local time >= LCC_TOKEN_REFRESH_AT (default 18:05) and token iat date < today => refresh.
+    - If local time >= BHLIB_TOKEN_REFRESH_AT (default 18:05) and token iat date < today => refresh.
     """
     payload = decode_jwt_payload(token)
     now = _dt.datetime.now()
@@ -64,7 +64,7 @@ def should_refresh_token(token: str) -> bool:
             return True
 
     env = load_env()
-    hh, mm = _parse_hhmm(env.get("LCC_TOKEN_REFRESH_AT", "18:05") or "18:05")
+    hh, mm = _parse_hhmm(env.get("BHLIB_TOKEN_REFRESH_AT", "18:05") or "18:05")
     refresh_time = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
     if now < refresh_time:
         return False
@@ -98,10 +98,10 @@ def ensure_logged_in(
             pass
 
     env = load_env()
-    username = (env.get("LCC_USERNAME") or "").strip()
-    password = env.get("LCC_PASSWORD") or ""
+    username = (env.get("BHLIB_USERNAME") or "").strip()
+    password = env.get("BHLIB_PASSWORD") or ""
     if not username or not password:
-        raise ConfigError("需要自动登录但缺少账号密码：请在 .env 里设置 LCC_USERNAME/LCC_PASSWORD")
+        raise ConfigError("需要自动登录但缺少账号密码：请在 .env 里设置 BHLIB_USERNAME/BHLIB_PASSWORD")
 
     result = cas_login(
         username=username,

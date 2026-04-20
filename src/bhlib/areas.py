@@ -214,7 +214,7 @@ def resolve_area_id(
 
     matches = [a for a in areas if needle in a["name"].casefold() or needle in a["nameMerge"].casefold()]
     if not matches:
-        raise ConfigError(f"找不到匹配 '{s}' 的区域。用 `lcc area list` 查看可用区域")
+        raise ConfigError(f"找不到匹配 '{s}' 的区域。用 `bhlib areas` 查看可用区域")
     if len(matches) == 1:
         return matches[0]["id"]
     raise ConfigError(_format_candidates(f"'{s}' 匹配到多个区域，请缩小范围（或直接传 id）：", matches))
