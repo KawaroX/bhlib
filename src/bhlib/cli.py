@@ -24,6 +24,7 @@ from .cas import CasLoginError, cas_login
 from .crypto import CryptoError, aesjson_decrypt, aesjson_encrypt
 from .http import HttpError
 from .env import load_env
+from .seatmap import render_seat_map
 
 
 def _effective_verify_ssl(auth, args: argparse.Namespace) -> bool:
@@ -1203,6 +1204,9 @@ def _cmd_seat_list(args: argparse.Namespace) -> int:
 
     seg_part = f" segment={segment}" if segment else ""
     print(f"area_id={area_id} day={day} {start_time}-{end_time}{seg_part} seats={len(rows)}")
+    if getattr(args, "show_map", False):
+        print(render_seat_map(rows))
+        return 0
     print(f"{'id':>7}  {'no':>4}  {'status':>6}  status_name")
     for it in rows:
         print(f"{_s(it.get('id')):>7}  {_s(it.get('no')):>4}  {_s(it.get('status')):>6}  {_s(it.get('status_name'))}")
@@ -1501,6 +1505,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_seats.add_argument("--start", dest="start_time", help="开始时间 HH:MM（默认当前时间）")
     p_seats.add_argument("--end", dest="end_time", help="结束时间 HH:MM（默认 23:00）")
     p_seats.add_argument("--all", dest="show_all", action="store_true", help="显示全部座位（含已预约/占用）")
+    p_seats.add_argument("--map", dest="show_map", action="store_true", help="在终端绘制座位平面图（按状态上色）")
     p_seats.add_argument("--json", action="store_true", help="输出原始 JSON")
     p_seats.add_argument("--timeout", type=float, default=15.0, help=argparse.SUPPRESS)
     p_seats.set_defaults(
