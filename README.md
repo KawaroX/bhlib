@@ -47,16 +47,22 @@ bhlib book                       # 列出默认区域的空闲座位，等你输
 bhlib book 131                   # 直接预约 no=131 的座位
 bhlib book --id 276              # 按座位 id 预约
 bhlib book --area 三层西 131      # 指定区域
+bhlib book --all                 # 列出时展示全部座位（含已占用/已预约）
 
 bhlib signin                     # 签到（到馆）
 bhlib leave                      # 暂离
 bhlib checkout                   # 离馆
 
-bhlib seats                      # 默认区域的空闲座位（默认输出终端平面图）
-bhlib seats --all                # 显示全部座位状态（含已占用/已预约）
-bhlib seats --all --list         # 以列表形式输出（而非平面图）
-bhlib seats --area 一层西 --all  # 指定区域的所有状态
+bhlib seats                      # 默认区域的座位状态（默认输出终端平面图）
+bhlib seats --all                # 显式要求显示全部（与默认行为相同）
+bhlib seats --list               # 以列表形式输出（仅空闲座位）
+bhlib seats --all --list         # 列表形式输出全部座位
+bhlib seats --area 一层西        # 指定区域
+```
 
+> **平面图自动 `--all` 说明**：`seats` 默认以**平面图（`--map`）**展示。为了让你一眼看到整块区域的使用情况，只要最终输出是平面图（无论是默认、显式 `--map`，还是配置默认格式为 `map`），系统都会**自动显示全部座位状态**，无需再手动加 `--all`。如果你只想看空闲座位，请使用 `--list`。
+
+```bash
 bhlib areas                      # 所有校区/楼层/区域（树形）
 bhlib areas --flat               # 扁平：id  完整路径  free/total
 bhlib areas --refresh            # 跳过 24h 缓存重新拉取
@@ -65,15 +71,39 @@ bhlib light 30                   # 亮度 30
 bhlib light on                   # 等价于 light 20
 bhlib light off                  # 等价于 light 0
 
-bhlib pomo                       # 25m，结束时闪灯 20↔40 两次
-bhlib pomo 45                    # 45m
-bhlib pomo 1h                    # 1 小时（只支持 m / h 后缀）
-bhlib pomo 25 15 60              # 25m，闪 15↔60
-bhlib pomo 25 --flash 15:60      # 同上，flag 写法
+bhlib pomo frontend              # 前台运行 25m，结束时闪灯 20↔40 两次
+bhlib pomo frontend 45           # 前台 45m
+bhlib pomo frontend 1h           # 前台 1 小时（只支持 m / h 后缀）
+bhlib pomo frontend 25 15 60     # 25m，闪 15↔60
+bhlib pomo frontend 25 --flash 15:60   # 同上，flag 写法
+
+bhlib pomo start                 # 后台启动番茄钟守护进程（默认 25m）
+bhlib pomo start 45              # 后台 45m
+bhlib pomo status                # 查看后台番茄钟状态
+bhlib pomo stop                  # 停止后台番茄钟
+bhlib pomo flash                 # 立即闪烁灯光（不启动计时器）
 
 bhlib config --default-area 一层西   # 设置默认区域
 bhlib config --seat-format list      # 设置 seats 默认输出为列表（默认是 map 平面图）
 ```
+
+## 输出格式
+
+`signin`、`leave`、`checkout`、`light` 以及 `book` 等操作成功后，终端会直接显示友好的文本提示，例如：
+
+```
+✅ 签到成功
+✅ 临时离开操作成功，请在 2026-04-22 14:08 前返回
+✅ 成功
+```
+
+如果接口返回错误（`code != 0`），则会显示：
+
+```
+❌ [10001] token 已过期
+```
+
+需要查看原始 JSON 时，可在 `me` 等支持 `--raw` 的命令中使用该参数。
 
 ## 按名字指定区域
 

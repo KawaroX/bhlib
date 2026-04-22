@@ -548,6 +548,28 @@ def _redact(value: str, keep: int = 6) -> str:
     return ("*" * (len(value) - keep)) + value[-keep:]
 
 
+def _print_api_result(data: object) -> None:
+    """Pretty-print a typical API response: show a checkmark + message on success,
+    otherwise preserve the full JSON."""
+    if not isinstance(data, dict):
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        return
+    code = data.get("code")
+    msg = data.get("message") or data.get("msg")
+    if code == 0 and msg:
+        print(f"✅ {msg}")
+        extra = data.get("data")
+        if extra is not None and extra != [] and extra != {}:
+            print(json.dumps(extra, ensure_ascii=False, indent=2))
+    elif code is not None and code != 0 and msg:
+        print(f"❌ [{code}] {msg}")
+        extra = data.get("data")
+        if extra is not None and extra != [] and extra != {}:
+            print(json.dumps(extra, ensure_ascii=False, indent=2))
+    else:
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+
+
 def _cmd_auth_show(args: argparse.Namespace) -> int:
     auth = load_auth()
     print(json.dumps(
@@ -669,7 +691,7 @@ def _cmd_light_set(args: argparse.Namespace) -> int:
         verify_ssl=verify_ssl,
         use_proxy=_effective_use_proxy(args),
     )
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+    _print_api_result(data)
     return 0
 
 
@@ -885,7 +907,7 @@ def _cmd_space_leave(args: argparse.Namespace) -> int:
         verify_ssl=verify_ssl,
         use_proxy=_effective_use_proxy(args),
     )
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+    _print_api_result(data)
     return 0
 
 
@@ -915,7 +937,7 @@ def _cmd_space_signin(args: argparse.Namespace) -> int:
         verify_ssl=verify_ssl,
         use_proxy=_effective_use_proxy(args),
     )
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+    _print_api_result(data)
     return 0
 
 
@@ -950,7 +972,7 @@ def _cmd_space_action(args: argparse.Namespace) -> int:
         verify_ssl=verify_ssl,
         use_proxy=_effective_use_proxy(args),
     )
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+    _print_api_result(data)
     return 0
 
 
@@ -1161,7 +1183,7 @@ def _cmd_space_book(args: argparse.Namespace) -> int:
         verify_ssl=verify_ssl,
         use_proxy=_effective_use_proxy(args),
     )
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+    _print_api_result(data)
     return 0
 
 
@@ -1486,6 +1508,10 @@ def _cmd_seats(args: argparse.Namespace) -> int:
             args.show_list = True
         else:
             args.show_map = True
+    # If map output is used (explicit or default), automatically show all seats.
+    if getattr(args, "show_map", False):
+        args.show_all = True
+        args.status = []
     return _cmd_seat_list(args)
 
 
