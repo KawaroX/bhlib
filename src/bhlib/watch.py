@@ -319,6 +319,16 @@ def _classify(ev: Event) -> str | None:
     return None
 
 
+def _status_label(status: str | None) -> str:
+    if status is None:
+        return "未知"
+    return STATUS_NAME.get(status, status)
+
+
+def _transition(ev: Event) -> str:
+    return f"{_status_label(ev.from_status)} → {_status_label(ev.to_status)}"
+
+
 def _format_remaining(delta: _dt.timedelta) -> str:
     secs = int(delta.total_seconds())
     if secs <= 0:
@@ -360,16 +370,29 @@ def dispatch_notifications(
         buckets.setdefault(cls, []).append(ev)
 
     for cls, evs in buckets.items():
-        nos = ", ".join(sorted({e.seat_no or e.seat_id for e in evs}))
-        if cls == "new_free":
-            title = f"新增 {len(evs)} 个空位"
-        elif cls == "taken":
-            title = f"{len(evs)} 个空位被使用"
-        elif cls == "temp_leave":
-            title = f"{len(evs)} 个新临时离开"
+        evs.sort(key=lambda e: e.seat_no or e.seat_id)
+        if len(evs) == 1:
+            ev = evs[0]
+            no = ev.seat_no or ev.seat_id
+            if cls == "new_free":
+                title = f"座位 {no} 空出来了"
+            elif cls == "taken":
+                title = f"座位 {no} 被使用"
+            elif cls == "temp_leave":
+                title = f"座位 {no} 临时离开"
+            else:
+                title = f"座位 {no} {cls}"
+            body = _transition(ev)
         else:
-            title = f"{cls} × {len(evs)}"
-        body = nos
+            if cls == "new_free":
+                title = f"新增 {len(evs)} 个空位"
+            elif cls == "taken":
+                title = f"{len(evs)} 个空位被使用"
+            elif cls == "temp_leave":
+                title = f"{len(evs)} 个新临时离开"
+            else:
+                title = f"{cls} × {len(evs)}"
+            body = "; ".join(f"{e.seat_no or e.seat_id}: {_transition(e)}" for e in evs)
         notify(title, body)
         sent.append((title, body))
 
